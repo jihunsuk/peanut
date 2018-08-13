@@ -12,7 +12,7 @@
   
 ### 2018.08.07(화)
 - 논문 정리
-  - 수정 (김다은)
+  - Neural Machine Translation by Jointly Learning to Align and Translate (김다은)
   - Learning Phrase Representations using RNN Encoder–Decoder for Statistical Machine Translation (석지훈)
   - Distributed Representations of Words and Phrases and their Compositionality (이하연)
   - 수정 (장은정)
