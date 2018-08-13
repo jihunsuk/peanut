@@ -22,7 +22,7 @@
   
  ---
  ### 구현환경
- - python 3.5
+ - python 3.6
  - tensorflow 1.9v
  
  ### 데이터 수집처
