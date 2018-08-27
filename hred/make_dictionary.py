@@ -3,15 +3,20 @@ from os.path import isfile, join
 import re
 import numpy as np
 
-personal_path ="/Users/leehayeon/"
+personal_path ="/Users/leehayeon/peanut/"
+
 
 path1 = personal_path+"hred/data/corpus_data/processed_data_without_colon/"
 path2 = personal_path+"hred/data/conversation/"
 path3 = personal_path+"hred/data/drama_data/"
+path4 = personal_path+"hred/data/etc/"
+path = [path1, path2, path3, path4]
 
 file_lists1= [f for f in listdir(path1) if isfile(join(path1, f))]
 file_lists2= [f for f in listdir(path2) if isfile(join(path2, f))]
 file_lists3= [f for f in listdir(path3) if isfile(join(path3, f))]
+file_lists4= [f for f in listdir(path4) if isfile(join(path4, f))]
+file_lists=[file_lists1, file_lists2, file_lists3, file_lists4]
 
 dict = {}
 
@@ -27,23 +32,27 @@ def make_dictionary():
         dict={}
 
         npy_arr =[]
-        print('in make_dictionary')
+
         for line in txt_file.readlines():
                 if line=='\n':
                         continue
+
+                line = line.strip()
 
                 for token in line.split(' '):
                         if token not in dict:
                                 dict[token] = len(dict)
 
+
                 npy_line =[]
                 for token in line.split(' '):
                         npy_line.append(dict[token])
                 npy_arr.append(npy_line)
-                break
+                
 
         for token in dict:
                 dict_file.write(token+'\n')
+
 
         dict_file.close()
         txt_file.close()
@@ -60,14 +69,13 @@ def preprocessing_data(path, file_list):
                 if file_list[i]==".DS_Store" or ('form' not in file_list[i]):
                         continue
                 
-                print(file_list[i])
+                print('gathering\t', file_list[i])
                 
                 dialogue=""
                 read_f = open(path+file_list[i], "r")
                 ss_in_dialogue =0 
                 dlg_end =False
                 for line in read_f.readlines():
-                        
                         #removing special characters
                         if line =='\n' or dlg_end:
                                 if ss_in_dialogue > 1:
@@ -93,7 +101,7 @@ def preprocessing_data(path, file_list):
                                         new_line= new_line.replace('  ', ' ')
 
                         else:
-                                new_line = regex.sub("", line).strip()+'\n'
+                                new_line = regex.sub(" ", line).strip()+'\n'
 
                         if len(new_line.split(' '))> limit_len:
                                 dlg_end= True
@@ -102,12 +110,29 @@ def preprocessing_data(path, file_list):
                         dialogue+= new_line
                         ss_in_dialogue+=1
 
+                all_txt += dialogue+'\n\n'
                 read_f.close()
         
         return all_txt
 
+def remove_expl(str):
+        while '(' in str:
+                start_idx = str.index('(')
+                if ')' not in str:
+                                print('err : ' +str)
+                                return ''
+                end_idx = str.index(')')
+                new = ''
+                new+=str[:start_idx]
+                if end_idx+1 <= len(str):
+                        new += str[end_idx+1:]
+                str = new               
 
-def format_files(path, file_list, write_f=None):
+        return str.strip()
+
+
+
+def format_file(path, file_list, write_f=None):
         global dot_regex
         global path2
 
@@ -115,7 +140,7 @@ def format_files(path, file_list, write_f=None):
                 if file_list[i]==".DS_Store" or "form" in file_list[i]:
                         continue
 
-                print(file_list[i])
+                #print('formating\t', file_list[i])
 
                 dialogue=""
                 write_format = open(path +'form_'+file_list[i], "w")
@@ -123,14 +148,15 @@ def format_files(path, file_list, write_f=None):
 
                 for origin_line in read_f.readlines():
                         origin_line = origin_line.replace('!','.', len(origin_line)).replace('?','.', len(origin_line))
-                        
+                        origin_line = remove_expl(origin_line)
                         ##regular expression_allowing period
-                        reg_line = dot_regex.sub("", origin_line)
+                        reg_line = dot_regex.sub(" ", origin_line)
 
                         while '  ' in reg_line:
                                 reg_line= reg_line.replace('  ', ' ')
                         while '..' in reg_line:
                                 reg_line= reg_line.replace('..', '.')
+
                         if reg_line == '.':
                                 continue
 
@@ -142,23 +168,23 @@ def format_files(path, file_list, write_f=None):
 
 read_1= read_2= read_3 =""
 
-format_files(path1, file_lists1)
-format_files(path2, file_lists2)
-format_files(path3, file_lists3)
+# matching format of files
+def formating_files():
+        for i, path_i in enumerate(path):
+                format_file(path_i, file_lists[i])
 
-write_f = open(personal_path+"hred/data/preprocessed_all.txt", "w")
+#write into 1 file and removing too long sentences
+def gather_and_preprocess():
+        write_f = open(personal_path+"hred/data/preprocessed_all.txt", "w")
+        gather=""
+        for i, path_i in enumerate(path):
+                gather+=preprocessing_data(path_i, file_lists[i])
+        write_f.write(gather)
+        write_f.close()
 
-write_1= preprocessing_data(path1, file_lists1)
-write_2= preprocessing_data(path2, file_lists2)
-write_3= preprocessing_data(path3, file_lists3)
 
-write_f.write(write_1+'\n\n')
-write_f.write(write_2+'\n\n')
-write_f.write(write_3+'\n\n')
-
-write_f.close()
-
+formating_files()
+gather_and_preprocess()
 make_dictionary()
-
 
 
