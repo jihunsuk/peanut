@@ -6,9 +6,9 @@ import numpy as np
 personal_path ="/Users/leehayeon/peanut/"
 
 
-path1 = personal_path+"hred/data/corpus_data/processed_data_without_colon/"
-path2 = personal_path+"hred/data/conversation/"
-path3 = personal_path+"hred/data/drama_data/"
+path1 = personal_path+"hred/data/conversation/"
+path2 = personal_path+"hred/data/drama_data/"
+path3= personal_path+"hred/data/corpus_data/processed_data_without_colon/"
 path4 = personal_path+"hred/data/etc/"
 path = [path1, path2, path3, path4]
 
@@ -26,9 +26,10 @@ regex = re.compile(pattern)
 dot_pattern = "[^ ㄱ - ㅎ|가-힣_. ]+"
 dot_regex = re.compile(dot_pattern)
 
-def make_dictionary():
-        txt_file =  open(personal_path+"hred/data/preprocessed_all.txt", "r")
-        dict_file = open(personal_path +"hred/data/dictionary.txt","w")
+def make_dictionary(txt_name):
+        txt_file =  open(personal_path+"hred/data/"+txt_name+".txt", "r")
+        #dict_file = open(personal_path +"hred/data/dictionary.txt","w")
+
         dict={}
         npy_arr =[]
 
@@ -52,14 +53,14 @@ def make_dictionary():
                         npy_line.append(dict[token])
                 npy_arr.append(npy_line)
 
-        for token in dict:
-                dict_file.write(token+'\n')
+        #for token in dict:
+        #        dict_file.write(token+'\n')
 
-        dict_file.close()
+        #dict_file.close()
         txt_file.close()
 
 
-        np.save(personal_path +"hred/data/dict_idx.npy", npy_arr)
+        np.save(personal_path +"hred/data/"+txt_name+".npy", npy_arr)
 
 def preprocessing_data(path, file_list):
         global regex
@@ -68,7 +69,7 @@ def preprocessing_data(path, file_list):
         max_len = 100
         limit_len = 35
         for i in range(len(file_list)):
-                if file_list[i]==".DS_Store" or ('form' not in file_list[i]):
+                if file_list[i]==".DS_Store" or ('form' not in file_list[i]) or ('enko' in file_list[i]):
                         continue
                 
                 #print('gathering\t', file_list[i])
@@ -175,18 +176,18 @@ def formating_files():
                 format_file(path_i, file_lists[i])
 
 #write into 1 file and removing too long sentences
-def gather_and_preprocess():
-        write_f = open(personal_path+"hred/data/preprocessed_all.txt", "w")
+def gather_and_preprocess(txt_name):
+        write_f = open(personal_path+"hred/data/"+txt_name, "w")
         gather=""
-        for i, path_i in enumerate(path):
+        for i, path_i in enumerate(path[:1]):
                 gather+=preprocessing_data(path_i, file_lists[i])
         write_f.write(gather)
         write_f.close()
 
 def main():
-        formating_files()
-        gather_and_preprocess()
-        make_dictionary()
+        #formating_files()
+        gather_and_preprocess("preprocessed_1by10.txt")
+        make_dictionary("preprocessed_1by10")
 
 if __name__ == "__main__":
         main()

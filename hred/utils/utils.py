@@ -27,6 +27,7 @@ class BLEUcalculator():
 		self.data_num = 0
 		self.pair=[]
 
+	
 	def add_pair(self, hypos, refs):
 		for i in range(len(hypos)):
 			self.pair.append([hypos[i], refs[i]])
