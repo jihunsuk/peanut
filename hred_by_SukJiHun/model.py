@@ -8,14 +8,10 @@ class Hred:
     train_op = None
 
     # 3개의 layer와 128개의 hidden_node 사용
-    def __init__(self, input_max_len, output_max_len, vocab_size, training_mode, n_hidden=128, n_layers=3):
-
-        tf.reset_default_graph()
+    def __init__(self, vocab_size, training_mode, n_hidden=128, n_layers=3):
 
         self.learning_late = 0.001
 
-        self.input_max_len = input_max_len
-        self.output_max_len = output_max_len
         self.vocab_size = vocab_size
         self.init_width = 1 / 20
         self.word_embedding_matrix = tf.Variable(
@@ -27,8 +23,8 @@ class Hred:
         self.training_mode = training_mode
         self.batch_size = tf.placeholder(tf.int32, name='batch_size')
 
-        self.enc_input_idx = tf.placeholder(tf.int32, [None, self.input_max_len], name='enc_input_idx')
-        self.dec_input_idx = tf.placeholder(tf.int32, [None, self.output_max_len], name='dec_input_idx')
+        self.enc_input_idx = tf.placeholder(tf.int32, [None, None], name='enc_input_idx')
+        self.dec_input_idx = tf.placeholder(tf.int32, [None, None], name='dec_input_idx')
         self.targets = tf.placeholder(tf.int32, [None, None], name='targets')
         self.enc_length = tf.placeholder(tf.int32, [None], name='enc_length')
         self.dec_length = tf.placeholder(tf.int32, [None], name='dec_length')
@@ -39,7 +35,7 @@ class Hred:
         self.build_model()
 
         # 모델저장 객체 생성
-        self.saver = tf.train.Saver(tf.global_variables(), name='saver')
+        self.saver = tf.train.Saver(tf.global_variables())
 
     def build_model(self):
         # cell 구축
@@ -49,9 +45,7 @@ class Hred:
         with tf.variable_scope('encode', reuse=tf.AUTO_REUSE):
             input_sentence_emb = tf.nn.embedding_lookup(self.word_embedding_matrix, self.enc_input_idx)
             outputs, enc_states = tf.nn.dynamic_rnn(enc_cell, input_sentence_emb, self.enc_length, dtype=tf.float32)
-            # enc_states -> [batch_size, hidden node]
 
-        # context_input -> [batch_size, 1, hidden node]
         with tf.variable_scope('context', reuse=tf.AUTO_REUSE):
             context_input = tf.reshape(enc_states, [1, -1, self.n_hidden])
             outputs, context_states = tf.nn.dynamic_rnn(context_cell, context_input, dtype=tf.float32)
@@ -59,11 +53,9 @@ class Hred:
         outputs = tf.reshape(outputs, [-1, self.n_hidden])
 
         with tf.variable_scope('decode', reuse=tf.AUTO_REUSE):
-            # 학습 경우
             if self.training_mode is True:
                 output_sentence_emb = tf.nn.embedding_lookup(self.word_embedding_matrix, self.dec_input_idx)
                 helper = tf.contrib.seq2seq.TrainingHelper(output_sentence_emb, self.dec_length)
-            # 학습이 아닌 경우
             else:
                 start_tokens = tf.fill([self.batch_size], 1)
                 end_token = 2
@@ -73,7 +65,6 @@ class Hred:
                                                       output_layer=tf.layers.Dense(self.vocab_size))
             outputs, states, length = tf.contrib.seq2seq.dynamic_decode(decoder)
 
-        # 학습 모델 구축
         self.logits, self.cost, self.train_op = self.build_ops(outputs, self.targets)
         self.outputs = tf.identity(outputs.sample_id, name='outputs')
 

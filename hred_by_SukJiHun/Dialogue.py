@@ -1,19 +1,15 @@
 import re
-import numpy as np
-import math
-import tensorflow as tf
 
 class Dialogue:
 
-    def __init__(self, path):
+    def __init__(self):
         self.PRE_DEFINED = ['_P_', '_S_', '_E_', '_U_']
-        self.sentences = self.load_data(path)
-        self.voc_arr = self.PRE_DEFINED + self.make_voc()
-        self.voc_dict = {voc: i for i, voc in enumerate(self.voc_arr)}
-        self.voc_size = len(self.voc_dict)
-        self.seq_data = self.make_seq_data()
-        self.input_max_len = max([len(self.seq_data[i]) for i in range(0, len(self.seq_data), 2)])+1
-        self.output_max_len = max([len(self.seq_data[i+1]) for i in range(0, len(self.seq_data), 2)])+1
+        self.voc_arr = []
+        self.voc_size = 0
+        self.voc_dict = {}
+        self.seq_data = []
+        self.input_max_len = 0
+        self.output_max_len = 0
 
         self.index_in_epoch = 0
 
@@ -21,7 +17,9 @@ class Dialogue:
     def load_data(self, path):
         with open(path, 'r', encoding='utf-8') as f:
             sentences = [line.strip() for line in f]
-        return sentences
+
+        self.seq_data = self.make_seq_data(sentences)
+
 
     # 문자열로 바꾸어준다.
     def decode(self, indices, string=False):
@@ -65,6 +63,20 @@ class Dialogue:
         tokens = [self.voc_arr[id] for id in ids]
         return tokens
 
+    def max_len(self, batch_set):
+        max_len_input = 0
+        max_len_output = 0
+
+        for i in range(0, len(batch_set), 2):
+            len_input = len(batch_set[i])
+            len_output = len(batch_set[i+1])
+            if len_input > max_len_input:
+                max_len_input = len_input
+            if len_output > max_len_output:
+                max_len_output = len_output
+
+        return max_len_input, max_len_output + 1
+
     # max_len 만큼 패딩 추가.
     def pad(self, seq, max_len, start=None, eos=None):
         if start:
@@ -79,16 +91,9 @@ class Dialogue:
         else:
             return padded_seq
 
-    # 사전을 만든다.
-    def make_voc(self):
-        voc_set = set()
-        for sentence in self.sentences:
-            voc_set.update(self.tokenizer(sentence))
-        return list(voc_set)
-
     # 문자열을 숫자(index) 배열로 만든다.
-    def make_seq_data(self):
-        seq_data = [self.tokens_to_ids(self.tokenizer(sentence)) for sentence in self.sentences]
+    def make_seq_data(self, sentences):
+        seq_data = [self.tokens_to_ids(self.tokenizer(sentence)) for sentence in sentences]
 
         return seq_data
 
@@ -108,8 +113,10 @@ class Dialogue:
             self.index_in_epoch = 0
 
         batch_set = self.seq_data[start:start + batch_size]
+        max_len_input, max_len_output = self.max_len(batch_set)
+
         for i in range(0, len(batch_set) - 1, 2):
-            enc, dec, tar = self.transform(batch_set[i], batch_set[i+1], self.input_max_len, self.output_max_len)
+            enc, dec, tar = self.transform(batch_set[i], batch_set[i+1], max_len_input, max_len_output)
 
             enc_batch.append(enc)
             dec_batch.append(dec)
@@ -129,3 +136,12 @@ class Dialogue:
 
         return enc_input, dec_input, target
 
+    def load_vocab(self, vocab_path):
+        self.voc_arr = self.PRE_DEFINED + []
+
+        with open(vocab_path, 'r', encoding='utf-8') as vocab_file:
+            for line in vocab_file:
+                self.voc_arr.append(line.strip())
+
+        self.voc_dict = {n: i for i, n in enumerate(self.voc_arr)}
+        self.voc_size = len(self.voc_arr)
