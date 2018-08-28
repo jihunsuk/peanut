@@ -8,9 +8,8 @@ sys.path.insert(0, '/')
 from model import Hred
 from Dialogue import Dialogue
 
-def train(dialog, batch_size=100, epoch=100):
+def train(dialog, batch_size=20, epoch=100):
 
-    #model = Hred(dialog.input_max_len, dialog.output_max_len, dialog.voc_size, True)
     model = Hred(dialog.voc_size, True)
     with tf.Session() as sess:
         ckpt = tf.train.get_checkpoint_state('./model')
@@ -42,7 +41,7 @@ def train(dialog, batch_size=100, epoch=100):
 
         print('최적화 완료!')
 
-def test(dialog, batch_size=100):
+def test(dialog, batch_size=20):
     print("\n=== 예측 테스트 ===")
     model = Hred(dialog.voc_size, False)
 

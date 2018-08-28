@@ -48,7 +48,7 @@ class chatbot:
             dec_batch.append(dec)
             enc_len.append(len(enc_input[i]))
             dec_len.append(len(dec_input[i])+1)
-
+        # dec_batch, dec_len은 원래 필요하지않는데 model에서 placeholder로 해놔서 그냥 enc랑 동일하게 주고있습니다.
         return self.model.predict(self.sess, enc_batch, enc_len, dec_batch, dec_len, len(enc_batch))
 
     # msg에 대한 응답을 반환
