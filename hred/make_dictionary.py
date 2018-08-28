@@ -60,7 +60,7 @@ def make_dictionary(txt_name):
         txt_file.close()
 
 
-        np.save(personal_path +"hred/data/"+txt_name+".npy", npy_arr)
+        np.save(personal_path +"hred/data/dict_idx_1by10.npy", npy_arr)
 
 def preprocessing_data(path, file_list):
         global regex
@@ -186,7 +186,7 @@ def gather_and_preprocess(txt_name):
 
 def main():
         #formating_files()
-        gather_and_preprocess("preprocessed_1by10.txt")
+        #gather_and_preprocess("preprocessed_1by10.txt")
         make_dictionary("preprocessed_1by10")
 
 if __name__ == "__main__":
