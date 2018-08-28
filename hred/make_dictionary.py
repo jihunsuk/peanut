@@ -32,10 +32,10 @@ def make_dictionary():
         dict={}
         npy_arr =[]
 
-        dict_expt = ['_S_', '_E_', '_U_', '_P_']
+        dict_expt = ['_P_', '_S_', '_E_', '_U_' ]
         for token in dict_expt:
                 dict[token] = len(dict)
-                
+
         for line in txt_file.readlines():
                 if line=='\n':
                         continue
