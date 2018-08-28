@@ -20,6 +20,17 @@ class Dialogue:
 
         self.seq_data = self.make_seq_data(sentences)
 
+    # 문자열을 숫자(index) 배열로 만든다.
+    def make_seq_data(self, sentences):
+        seq_data = [self.tokens_to_ids(self.tokenizer(sentence)) for sentence in sentences]
+        return seq_data
+
+    # 데이터 전처리되면 이것을 사용할 것임.
+    # def load_data(self, path):
+    #     with open(path, 'r', encoding='utf-8') as f:
+    #         for line in f:
+    #             self.seq_data.append(list(map(int, line.strip().split())))
+
 
     # 문자열로 바꾸어준다.
     def decode(self, indices, string=False):
@@ -91,11 +102,7 @@ class Dialogue:
         else:
             return padded_seq
 
-    # 문자열을 숫자(index) 배열로 만든다.
-    def make_seq_data(self, sentences):
-        seq_data = [self.tokens_to_ids(self.tokenizer(sentence)) for sentence in sentences]
 
-        return seq_data
 
     # batct_size만큼 입력데이터를 반환
     def next_batch(self, batch_size):
