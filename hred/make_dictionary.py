@@ -30,9 +30,12 @@ def make_dictionary():
         txt_file =  open(personal_path+"hred/data/preprocessed_all.txt", "r")
         dict_file = open(personal_path +"hred/data/dictionary.txt","w")
         dict={}
-
         npy_arr =[]
 
+        dict_expt = ['_S_', '_E_', '_U_', '_P_']
+        for token in dict_expt:
+                dict[token] = len(dict)
+                
         for line in txt_file.readlines():
                 if line=='\n':
                         continue
@@ -48,17 +51,13 @@ def make_dictionary():
                 for token in line.split(' '):
                         npy_line.append(dict[token])
                 npy_arr.append(npy_line)
-        
-        dict_expt = ['_S_', '_E_', '_U_', '_P_']
-        for token in dict_expt:
-                dict[token] = len(dict)
 
         for token in dict:
                 dict_file.write(token+'\n')
 
-
         dict_file.close()
         txt_file.close()
+
 
         np.save(personal_path +"hred/data/dict_idx.npy", npy_arr)
 
