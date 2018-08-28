@@ -71,7 +71,7 @@ def preprocessing_data(path, file_list):
                 if file_list[i]==".DS_Store" or ('form' not in file_list[i]):
                         continue
                 
-                print('gathering\t', file_list[i])
+                #print('gathering\t', file_list[i])
                 
                 dialogue=""
                 read_f = open(path+file_list[i], "r")
@@ -183,9 +183,13 @@ def gather_and_preprocess():
         write_f.write(gather)
         write_f.close()
 
+def main():
+        formating_files()
+        gather_and_preprocess()
+        make_dictionary()
 
-formating_files()
-gather_and_preprocess()
-make_dictionary()
+if __name__ == "__main__":
+        main()
+
 
 
