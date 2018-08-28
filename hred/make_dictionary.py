@@ -48,7 +48,10 @@ def make_dictionary():
                 for token in line.split(' '):
                         npy_line.append(dict[token])
                 npy_arr.append(npy_line)
-                
+        
+        dict_expt = ['_S_', '_E_', '_U_', '_P_']
+        for token in dict_expt:
+                dict[token] = len(dict)
 
         for token in dict:
                 dict_file.write(token+'\n')
@@ -166,7 +169,6 @@ def format_file(path, file_list, write_f=None):
                 write_format.close()
                 read_f.close()
 
-read_1= read_2= read_3 =""
 
 # matching format of files
 def formating_files():
