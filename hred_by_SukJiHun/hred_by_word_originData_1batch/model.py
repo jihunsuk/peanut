@@ -13,7 +13,7 @@ class Hred:
         self.learning_late = 0.001
 
         self.vocab_size = vocab_size
-        self.embedding_size = 20   # 일단 어린왕자는 사전이작아 20으로 해놨음. 후에는 300이 좋을것같음.
+        self.embedding_size = 300
         self.init_width = 1 / self.embedding_size
         self.word_embedding_matrix = tf.Variable(
             tf.random_uniform([self.vocab_size, self.embedding_size], -self.init_width, self.init_width, dtype=tf.float32),

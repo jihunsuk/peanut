@@ -1,9 +1,9 @@
 import re
+import numpy as np
 
 class Dialogue:
 
     def __init__(self):
-        self.PRE_DEFINED = ['_P_', '_S_', '_E_', '_U_']
         self.voc_arr = []
         self.voc_size = 0
         self.voc_dict = {}
@@ -13,23 +13,10 @@ class Dialogue:
 
         self.index_in_epoch = 0
 
-    # 파일로부터 문장을 읽어온다.
     def load_data(self, path):
-        with open(path, 'r', encoding='utf-8') as f:
-            sentences = [line.strip() for line in f]
-
-        self.seq_data = self.make_seq_data(sentences)
-
-    # 문자열을 숫자(index) 배열로 만든다.
-    def make_seq_data(self, sentences):
-        seq_data = [self.tokens_to_ids(self.tokenizer(sentence)) for sentence in sentences]
-        return seq_data
-
-    # 데이터 전처리되면 이것을 사용할 것임.
-    # def load_data(self, path):
-    #     with open(path, 'r', encoding='utf-8') as f:
-    #         for line in f:
-    #             self.seq_data.append(list(map(int, line.strip().split())))
+        data = np.load(path)
+        for line in data:
+            self.seq_data.append(line)
 
     # 문자열로 바꾸어준다.
     def decode(self, indices, string=False):
@@ -53,17 +40,12 @@ class Dialogue:
     def is_eos(self, voc_id):
         return voc_id == 2
 
-    # 미리 정의한 (E, U, S, P)인지 검사
-    def is_defined(self, voc_id):
-        return voc_id in self.PRE_DEFINED
-
     # 정규화식에서 빼고 띄워쓰기 기준으로 자른다.
     def tokenizer(self, sentence):
         sentence = re.sub("[.,!?\"':;)(]", ' ', sentence)
         tokens = sentence.split()
         return tokens
 
-    # 토큰을 id로 바꿔 반환한다.
     def tokens_to_ids(self, tokens):
         ids = [self.voc_dict[token] if token in self.voc_arr else self.voc_dict['_U_'] for token in tokens]
         return ids
@@ -72,20 +54,6 @@ class Dialogue:
     def ids_to_tokens(self, ids):
         tokens = [self.voc_arr[id] for id in ids]
         return tokens
-
-    def max_len(self, batch_set):
-        max_len_input = 0
-        max_len_output = 0
-
-        for i in range(0, len(batch_set)-1):
-            len_input = len(batch_set[i])
-            len_output = len(batch_set[i+1])
-            if len_input > max_len_input:
-                max_len_input = len_input
-            if len_output > max_len_output:
-                max_len_output = len_output
-
-        return max_len_input, max_len_output + 1
 
     # max_len 만큼 패딩 추가.
     def pad(self, seq, max_len, start=None, eos=None):
@@ -117,16 +85,23 @@ class Dialogue:
             self.index_in_epoch = 0
 
         batch_set = self.seq_data[start:start + batch_size]
-        max_len_input, max_len_output = self.max_len(batch_set)
+
 
         for i in range(0, len(batch_set) - 1):
-            enc, dec, tar = self.transform(batch_set[i], batch_set[i+1], max_len_input, max_len_output)
+            enc_input = batch_set[i]
+            if len(batch_set[i]) > 25:
+                enc_input = batch_set[i][0:25]
+            dec_input = batch_set[i + 1]
+            if len(batch_set[i + 1]) > 24:
+                dec_input = batch_set[i + 1][0:24]
+
+            enc, dec, tar = self.transform(enc_input, dec_input, 25, 25)
 
             enc_batch.append(enc)
             dec_batch.append(dec)
             target_batch.append(tar)
-            enc_length.append(len(batch_set[i]))
-            dec_length.append(len(batch_set[i+1])+1)
+            enc_length.append(len(enc_input))
+            dec_length.append(len(dec_input)+1)
 
         return enc_batch, enc_length, dec_batch, dec_length, target_batch
 
@@ -141,7 +116,7 @@ class Dialogue:
         return enc_input, dec_input, target
 
     def load_vocab(self, vocab_path):
-        self.voc_arr = self.PRE_DEFINED + []
+        self.voc_arr = []
 
         with open(vocab_path, 'r', encoding='utf-8') as vocab_file:
             for line in vocab_file:

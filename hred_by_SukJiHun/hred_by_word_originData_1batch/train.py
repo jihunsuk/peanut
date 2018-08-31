@@ -75,10 +75,9 @@ def test(dialog, batch_size=20):
         print("    실제값:", expect)
         print("    예측값:", ' '.join(outputs))
 
-
 def main(_):
-    data_path = './data/chat.log'
-    vocab_path = './data/chat.voc'
+    data_path = './data/dict_idx_1by10.npy'
+    vocab_path = './data/dictionary.txt'
 
     dialog = Dialogue()
 
@@ -87,7 +86,6 @@ def main(_):
 
     train(dialog, epoch=1000)   # 학습
     #test(dialog)               # 테스트
-
 
 if __name__ == "__main__":
     tf.app.run()

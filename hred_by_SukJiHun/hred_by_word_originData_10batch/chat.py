@@ -1,6 +1,6 @@
 import tensorflow as tf
 import sys
-import math
+import numpy as np
 
 from Dialogue import Dialogue
 from model import Hred
@@ -9,7 +9,7 @@ class chatbot:
     def __init__(self, voc_path):
         self.dialogue = Dialogue()
         self.dialogue.load_vocab(voc_path)
-        self.model = Hred(self.dialogue.voc_size, False)
+        self.model = Hred(self.dialogue.voc_size, False, 1)
         self.sess = tf.Session()
 
         # 모델 불러오기
@@ -35,23 +35,31 @@ class chatbot:
             line = sys.stdin.readline()
             setences.append(line.strip())
 
-    def _decode(self, enc_input, dec_input):
+    def _decode(self, enc_inputs, dec_inputs):
         enc_len = []
         dec_len = []
 
         enc_batch = []
         dec_batch = []
 
-        input_len = int(math.ceil((len(enc_input) + 1) * 1.5)) # 버킷 사용
+        for i in range(0, len(enc_inputs)):
+            enc_input = enc_inputs[i]
+            if len(enc_input) > 25:
+                enc_input = enc_inputs[i][0:25]
+            dec_input = dec_inputs[i]
+            if len(dec_input) > 24:
+                dec_input = dec_inputs[i][0:24]
 
-        for i in range(0, len(enc_input)):
-            enc, dec, _ = self.dialogue.transform(enc_input[i], dec_input[i], input_len, input_len)
+            enc, dec, _ = self.dialogue.transform(enc_input, dec_input, 25, 25)
             enc_batch.append(enc)
             dec_batch.append(dec)
-            enc_len.append(len(enc_input[i]))
-            dec_len.append(len(dec_input[i])+1)
-            # predict할떄 dec는 필요없는데 model에 placeholder로 해놔서 일단 아무거나(enc) 줬습니다.
-        return self.model.predict(self.sess, enc_batch, enc_len, dec_batch, dec_len, len(enc_batch))
+            enc_len.append(len(enc_input))
+            dec_len.append(len(dec_input)+1)
+
+        context_size = len(enc_inputs)
+        b = np.max(dec_len, 0)
+
+        return self.model.predict(self.sess, [enc_batch], [enc_len], [dec_batch], [dec_len], [b], context_size)
 
     # msg에 대한 응답을 반환
     def get_replay(self, sentences):
@@ -65,7 +73,7 @@ class chatbot:
 
         return reply
 
-vocab_path = './data/chat.voc'
+vocab_path = './data/dictionary.txt'
 
 def main(_):
 
