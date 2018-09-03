@@ -38,9 +38,10 @@ class BLEUcalculator():
         self.score_lst = list(map(lambda pair: nltk.translate.bleu_score.sentence_bleu([pair[1]], pair[0]), self.pair))
         self.avg = np.mean(np.array(self.score_lst))
 
+#reference
+expect_path = '/Users/leehayeon/Downloads/expect_hred_word.txt'
 #hypothesis
-expect_path = '/Users/leehayeon/Downloads/expect.txt'
-predict_path = '/Users/leehayeon/Downloads/predict.txt'
+predict_path = '/Users/leehayeon/Downloads/predict_hred_word.txt'
 
 hypothesis =[]
 reference =[]
@@ -49,19 +50,24 @@ expect_file = open(expect_path, "r")
 predict_file = open(predict_path, "r")
 
 for line in expect_file.readlines():
-	new_line = line.strip().replace('  ', '*')
-	new_line = new_line.replace(' ', '')
-	new_line = new_line.replace('*', ' ')
-	hypothesis.append(new_line.split(' '))
+    new_line = line.strip()
+    '''
+    #in hred, character token model
+    new_line = new_line.replace('  ', '*')
+    new_line = new_line.replace(' ', '')
+    new_line = new_line.replace('*', ' ')
+    '''
+    reference.append(new_line.split(' '))
 
 for line in predict_file.readlines():
-        new_line = line.strip().replace('  ', '*')
-        new_line = new_line.replace(' ', '')
-        new_line = new_line.replace('*', ' ')
-        reference.append(new_line.split(' '))
-
-print(hypothesis[0])
-print(reference[0])
+    new_line = line.strip()
+    '''
+    #in hred, character token model
+    new_line = line.strip().replace('  ', '*')
+    new_line = new_line.replace(' ', '')
+    new_line = new_line.replace('*', ' ')
+    '''
+    hypothesis.append(new_line.split(' '))
 
 bleu = BLEUcalculator()
 bleu.add_pair(hypothesis, reference)
